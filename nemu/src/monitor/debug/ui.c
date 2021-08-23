@@ -43,7 +43,7 @@ static int cmd_x(char *args) {
 	int length;
 	sscanf(add,"%x",&address);
 	sscanf(N,"%d",&length);
-
+printf("%0#8x\n",address);
 	int t;
 	for(t=0;t<length;t++)
 	{
