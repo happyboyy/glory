@@ -43,11 +43,11 @@ static int cmd_x(char *args) {
 	int length;
 	sscanf(add,"%x",&address);
 	sscanf(N,"%d",&length);
-printf("%0#8x\n",address);
+printf("%08x\n",address);
 	int t;
 	for(t=0;t<length;t++)
 	{
-      printf("%0#8x\n",swaddr_read(address,4));
+      printf("%08x\n",swaddr_read(address,4));
 	  address+=4;
 	}
 	return 0;
