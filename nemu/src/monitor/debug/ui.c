@@ -47,7 +47,7 @@ static int cmd_x(char *args) {
 	int t;
 	for(t=0;t<length;t++)
 	{
-      printf("%08x\n",swaddr_read(address,4));
+      printf("%0#8x\n",swaddr_read(address,4));
 	  address+=4;
 	}
 	return 0;
