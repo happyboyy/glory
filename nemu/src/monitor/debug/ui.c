@@ -36,6 +36,23 @@ static int cmd_q(char *args) {
 	return -1;
 }
 
+static int cmd_x(char *args) {
+	char *N =strtok(args," ");
+	char  *add=strtok(NULL," ");
+	swaddr_t  address;
+	int length;
+	sscanf(add,"%x",&address);
+	sscanf(N,"%d",&length);
+
+	int t;
+	for(t=0;t<length;t++)
+	{
+      printf("%0#x\n",swaddr_read(address,4));
+	  address+=4;
+	}
+	return 0;
+}
+
 static int cmd_info(char *args) {
 	char xixi;
 	sscanf(args,"%s",&xixi);
@@ -74,6 +91,7 @@ static struct {
 	{ "q", "Exit NEMU", cmd_q },
     {"si","execute given times", cmd_si},
 	{"info","print all registers",cmd_info},
+	{"x","scan memory",cmd_x},
 	/* TODO: Add more commands */
 
 };
