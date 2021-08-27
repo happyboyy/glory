@@ -243,7 +243,7 @@ uint32_t expr(char *e, bool *success)
 		return 0;
 		}
 		
-    printf("%d",nr_token);
+    
 
 
 	/* TODO: Insert codes to evaluate the expression. */
