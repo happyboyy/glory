@@ -7,7 +7,7 @@
 #include <regex.h>
 
 enum {
-	NOTYPE = 256, EQ
+	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR
 
 	/* TODO: Add more token types */
 
@@ -24,7 +24,19 @@ static struct rule {
 
 	{" +",	NOTYPE},				// spaces
 	{"\\+", '+'},					// plus
-	{"==", EQ}						// equal
+	{"==", EQ}	,					// equal
+	{"0[xX][A-Fa-f0-9]{1,8}", Hex},	//16进制
+	{"[0-9]{1,10}", Number},		//数字
+	{"\\-", '-'},					// 减
+	{"\\*", '*'},					// 乘
+	{"/", '/'},						// 除
+	{"\\(", '('},					//	( 
+	{"\\)", ')'},					//	)
+	{"!=", NEQ},					//不等
+	{"&&", AND},						//逻辑与
+	{"\\|\\|", OR},					//逻辑或
+	{"!", '!'}		,				//逻辑非
+	{"\\$(e?(ax|dx|cx|bx|si|di|sp|ip)|[a-d][hl])", Reg},	//寄存器
 };
 
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
@@ -32,7 +44,7 @@ static struct rule {
 static regex_t re[NR_REGEX];
 
 /* Rules are used for many times.
- * Therefore we compile them only once before any usage.
+ * Therefore we compile them onAND once before any usage.
  */
 void init_regex() {
 	int i;
@@ -63,6 +75,11 @@ static bool make_token(char *e) {
 	
 	nr_token = 0;
 
+
+	for(i=0; i < 32; i++){
+		tokens[i].type = 777;
+		memset(tokens[i].str, 0, sizeof(tokens[i].str));
+
 	while(e[position] != '\0') {
 		/* Try all rules one by one. */
 		for(i = 0; i < NR_REGEX; i ++) {
@@ -79,30 +96,97 @@ static bool make_token(char *e) {
 				 */
 
 				switch(rules[i].token_type) {
-					default: panic("please implement me");
+					case NOTYPE:{ nr_token--;break;}
+					case Number: {
+						tokens[nr_token].type = Number;
+						strncpy(tokens[nr_token].str, substr_start, substr_len);
+						break;
+					}
+					case Hex: {
+						tokens[nr_token].type = Hex;
+						strncpy(tokens[nr_token].str, substr_start, substr_len);
+						break;
+					}{
+					case Reg: {
+						tokens[nr_token].type = Reg;
+						strncpy(tokens[nr_token].str, substr_start, substr_len);
+						break;
+					}
+					default:{tokens[nr_token].type = rules[i].token_type;break;}
 				}
-
+                nr_token++;
 				break;
 			}
 		}
-
 		if(i == NR_REGEX) {
 			printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
 			return false;
 		}
 	}
-
+nr_token = nr_token;
 	return true; 
 }
 
-uint32_t expr(char *e, bool *success) {
-	if(!make_token(e)) {
-		*success = false;
-		return 0;
-	}
 
-	/* TODO: Insert codes to evaluate the expression. */
-	panic("please implement me");
-	return 0;
+
+
+	}return 0;}
+	bool check_parentheses(int p ,int q)
+{
+    int i,valid = 0;
+    if(tokens[p].type != '(' || tokens[q].type != ')') return false; 
+    for(i = p ; i <= q ; i ++){    
+        if(tokens[i].type == '(') valid++;
+        else if(tokens[i].type == ')') valid--;
+        if(valid == 0 && i < q) return false ; 
+    }                              
+    if( valid != 0 ) return false;   
+    return true;                   
 }
 
+int pri(int a)
+{
+	switch(a)
+	{
+		case '+' :return 5;
+		case '-'	:return 5;
+		case AND:return 12;
+		case OR:return 13;
+		case '*':return 4;
+		case '/':return 4;
+		case '!':return 2;
+		}
+		return -1;
+}
+
+int mo(int p,int q)
+{
+	int cnt=0;int priority=-22;int pi=0;
+		int i;
+		for(i=q;q>=p;q--)
+	{
+       if(tokens[i].type == ')')cnt++;
+	   if(tokens[i].type == '(')cnt--;
+	   if(cnt==0)
+	   {
+		   if(pri(q)>priority)
+         {priority=pri(q);pi=q;}
+	   }
+	   return pi;
+	}
+return 0;
+}
+
+
+uint32_t expr(char *e, bool *success) 
+{
+	if(!make_token(e)) 
+		
+		{*success = false;
+		return 0;
+		}
+
+	/* TODO: Insert codes to evaluate the expression. */
+	//panic("please implement me");
+	return 0;
+}       
