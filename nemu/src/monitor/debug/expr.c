@@ -91,15 +91,27 @@ static bool make_token(char *e) {
 				 */
 
 				switch(rules[i].token_type) {
-					case NOTYPE: break;
-					case Number:
-					//case ID:
-					case Reg: sprintf(tokens[nr_token].str, "%.*s", substr_len, substr_start);
-					default: tokens[nr_token].type = rules[i].token_type;
-							 nr_token ++;
+				case NOTYPE:{ break;}
+					case Number: {
+						tokens[nr_token].type = Number;
+						strncpy(tokens[nr_token].str, substr_start, substr_len);
+						 nr_token++;
+						break;
+					}
+					case Hex: {
+						tokens[nr_token].type = Hex;
+						strncpy(tokens[nr_token].str, substr_start, substr_len);
+						 nr_token++;
+						break;
+					}
+					case Reg: {
+						tokens[nr_token].type = Reg;
+						strncpy(tokens[nr_token].str, substr_start, substr_len);
+						 nr_token++;
+						break;}
 				}
 
-				break;
+				
 			}
 		}
 
