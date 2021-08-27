@@ -100,21 +100,23 @@ static bool make_token(char *e) {
 					case Number: {
 						tokens[nr_token].type = Number;
 						strncpy(tokens[nr_token].str, substr_start, substr_len);
+						 nr_token++;
 						break;
 					}
 					case Hex: {
 						tokens[nr_token].type = Hex;
 						strncpy(tokens[nr_token].str, substr_start, substr_len);
+						 nr_token++;
 						break;
 					}{
 					case Reg: {
 						tokens[nr_token].type = Reg;
 						strncpy(tokens[nr_token].str, substr_start, substr_len);
+						 nr_token++;
 						break;
 					}
-					default:{tokens[nr_token].type = rules[i].token_type;break;}
+					default:{tokens[nr_token].type = rules[i].token_type; nr_token++;break;}
 				}
-                nr_token++;
 				break;
 			}
 		}
