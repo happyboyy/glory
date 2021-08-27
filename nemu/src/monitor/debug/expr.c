@@ -177,6 +177,42 @@ int mo(int p,int q)
 return 0;
 }
 
+int recursion(int p,int q)
+{
+	if(check_parentheses(p,q)==true){p++;q--;}
+	if(p==q)
+	{
+		if(tokens[p].type==Number)
+		printf("%s",tokens[p].str);
+		if(tokens[p].type==Hex)
+		printf("%s",tokens[p].str);
+	}
+   if(p<q)
+   {
+	  if(++p==q)
+     {
+
+     }
+
+else
+{
+   int mainop =mo(p,q);
+   int type = tokens[mainop].type;
+int val1 =recursion(p,mainop-1);
+int val2 =recursion(mainop+1,q);
+switch(type)
+{
+	case '+':return val1+val2;
+	case '-':return val1-val2;
+	case '*':return val1*val2;
+	case '/':return val1/val2;
+}
+}
+
+   }
+   return 0;
+}
+
 
 uint32_t expr(char *e, bool *success) 
 {
