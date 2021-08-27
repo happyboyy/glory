@@ -111,7 +111,7 @@ static bool make_token(char *e) {
 						break;}
 						default:{tokens[nr_token].type = rules[i].token_type; nr_token++;break;}
 				}
-
+                
 				
 			}
 		}
@@ -214,7 +214,7 @@ uint32_t expr(char *e, bool *success)
 		return 0;
 		}
 		
-    printf("%s",tokens[1].str);
+    printf("%s",tokens[0].str);
 
 	/* TODO: Insert codes to evaluate the expression. */
 	//panic("please implement me");
