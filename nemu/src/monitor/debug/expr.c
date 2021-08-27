@@ -109,6 +109,7 @@ static bool make_token(char *e) {
 						strncpy(tokens[nr_token].str, substr_start, substr_len);
 						 nr_token++;
 						break;}
+						default:{tokens[nr_token].type = rules[i].token_type; nr_token++;break;}
 				}
 
 				
