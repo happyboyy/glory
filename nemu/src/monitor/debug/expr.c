@@ -223,7 +223,7 @@ uint32_t expr(char *e, bool *success)
 		return 0;
 		}
 		
-    printf("%s",tokens[2].str);
+    printf("%s",tokens[1].str);
 
 	/* TODO: Insert codes to evaluate the expression. */
 	//panic("please implement me");
