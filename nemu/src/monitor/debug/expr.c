@@ -8,7 +8,7 @@
 #include <regex.h>
 
 enum {
-	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR,NEG
+	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR,NEG,DEREF
 
 	/* TODO: Add more token types */
 
@@ -176,39 +176,119 @@ int mo(int p, int q)
 	return dom;
 }
 
-int recursion(int p,int q)
+uint32_t eval(int l, int r, bool *success)
 {
-	if(check_parentheses(p,q)==true){p++;q--;}
-	if(p==q)
+	if (*success == 0)
+		return -1;
+	if (l > r)
 	{
-		if(tokens[p].type==Number||tokens[p].type==Hex)
-		return strtol(tokens[p].str,NULL,0);
+		Assert(l > r, "表达式计算错误未知!\n");
+		return -1;
 	}
-   if(p<q)
-   {
-	  if(++p==q)
-     {
+	if (l == r)
+	{
+		uint32_t num = 0;
+		if (tokens[l].type == Number)
+			sscanf(tokens[l].str, "%d", &num);
+		else if (tokens[l].type == Hex)
+			sscanf(tokens[l].str, "%x", &num);
+		else if (tokens[l].type == Reg)
+		{
+			if (strlen(tokens[l].str) == 3)
+			{
+				int i;
+				for (i = R_EAX; i <= R_EDI; i++)
+					if (strcmp(tokens[l].str, regsl[i]) == 0)
+						break;
+				if (i > R_EDI)
+					if (strcmp(tokens[l].str, "eip") == 0)
+						num = cpu.eip;
+					else
+						Assert(1, "no this register!\n");
+				else
+					num = reg_l(i);
+			}
+			else if (strlen(tokens[l].str) == 2)
+			{
+				if (tokens[l].str[1] == 'x' || tokens[l].str[1] == 'p' || tokens[l].str[1] == 'i')
+				{
+					int i;
+					for (i = R_AX; i <= R_DI; i++)
+						if (strcmp(tokens[l].str, regsw[i]) == 0)
+							break;
+					num = reg_w(i);
+				}
+				else if (tokens[l].str[1] == 'l' || tokens[l].str[1] == 'h')
+				{
+					int i;
+					for (i = R_AL; i <= R_BH; i++)
+						if (strcmp(tokens[l].str, regsb[i]) == 0)
+							break;
+					num = reg_b(i);
+				}
+				else
+					assert(1);
+			}
+		}
 
-     }
+		else
+		{
+			//printf("type = %d\n", token[l].type);
+			*success = false;
+			return -1;
+		}
+		return num;
+	}
+	else if (check_parentheses(l, r) == true)
+		return eval(l + 1, r - 1, success);
+	else
+	{
+		int op = mo(l, r);
+		if (l == op || tokens[op].type == DEREF || tokens[op].type == NEG || tokens[op].type == '!')
+		{
+			uint32_t val = eval(l + 1, r, success);
+			switch (tokens[l].type)
+			{
+			case DEREF:
+				return swaddr_read(val, 4);
+			case NEG:
+				return -val;
+			case '!':
+				return !val;
+			default:
+				//printf("不合法表达式\n"); //有些主运算符无法处于第一位
+				*success = false;
+				return -1;
+			}
+		}
+		uint32_t val1 = eval(l, op - 1, success);
+		uint32_t val2 = eval(op + 1, r, success);
+		switch (tokens[op].type)
+		{
+		case '+':
+			return val1 + val2;
+		case '-':
+			return val1 - val2;
+		case '*':
+			return val1 * val2;
+		case '/':
+			return val1 / val2;
+		case EQ:
+			return val1 == val2;
+		case NEQ:
+			return val1 != val2;
+		case AND:
+			return val1 && val2;
+		case OR:
+			return val1 || val2;
+		default:
+			//printf("不合法表达式\n"); //有些主运算符无法处于第一位
+			*success = false;
+			return -1;
+		}
+	}
+}
 
-else
-{
-   int mainop =mo(p,q);
-   int type = tokens[mainop].type;
-int val1 =recursion(p,mainop-1);
-int val2 =recursion(mainop+1,q);
-switch(type)
-{
-	case '+':return val1+val2;
-	case '-':return val1-val2;
-	case '*':return val1*val2;
-	case '/':return val1/val2;
-}
-}
-
-   }
-   return 0;
-}
 
 uint32_t expr(char *e, bool *success) 
 {
@@ -223,5 +303,5 @@ uint32_t expr(char *e, bool *success)
 
 	/* TODO: Insert codes to evaluate the expression. */
 	//panic("please implement me");
-	return recursion(0,nr_token-1);
+	return eval(0,nr_token-1,success);
 }       
