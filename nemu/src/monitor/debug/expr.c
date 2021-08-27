@@ -1,4 +1,5 @@
 #include "nemu.h"
+#include <stdlib.h>
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
@@ -96,7 +97,7 @@ static bool make_token(char *e) {
 				 */
 
 				switch(rules[i].token_type) {
-					case NOTYPE:{ nr_token--;break;}
+					case NOTYPE:{ break;}
 					case Number: {
 						tokens[nr_token].type = Number;
 						strncpy(tokens[nr_token].str, substr_start, substr_len);
@@ -184,10 +185,8 @@ int recursion(int p,int q)
 	if(check_parentheses(p,q)==true){p++;q--;}
 	if(p==q)
 	{
-		if(tokens[p].type==Number)
-		printf("%s",tokens[p].str);
-		if(tokens[p].type==Hex)
-		printf("%s",tokens[p].str);
+		if(tokens[p].type==Number||tokens[p].type==Hex)
+		return strtol(tokens[p].str,NULL,0);
 	}
    if(p<q)
    {
@@ -224,7 +223,7 @@ uint32_t expr(char *e, bool *success)
 		return 0;
 		}
 		
-    printf("%d",nr_token);
+    //printf("%d",nr_token);
 
 	/* TODO: Insert codes to evaluate the expression. */
 	//panic("please implement me");
