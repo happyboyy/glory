@@ -140,22 +140,40 @@ int pri(int a)
 		return -1;
 }
 
-int mo(int p,int q)
+int mo(int p, int q)
 {
-	int cnt=0;int priority=-22;int pi=0;
-		int i;
-		for(i=q;q>=p;q--)
+
+	int i, dom = p, left_n = 0;
+	int pr = -1;
+	for (i = p; i <= q; i++)
 	{
-       if(tokens[i].type == ')')cnt++;
-	   if(tokens[i].type == '(')cnt--;
-	   if(cnt==0)
-	   {
-		   if(pri(q)>priority)
-         {priority=pri(q);pi=q;}
-	   }
-	   return pi;
+		if (tokens[i].type == '(')
+		{
+			left_n += 1;
+			i++;
+			while (1)
+			{
+				if (tokens[i].type == '(')
+					left_n += 1;
+				else if (tokens[i].type == ')')
+					left_n--;
+				i++;
+				if (left_n == 0)
+					break;
+			}
+			if (i > q)
+				break;
+		}
+		else if (tokens[i].type == Number)
+			continue;
+		else if (pri(tokens[i].type) > pr)
+		{
+			pr = pri(tokens[i].type);
+			dom = i;
+		}
 	}
-return 0;
+
+	return dom;
 }
 
 uint32_t eval(int p,int q,bool *success)
