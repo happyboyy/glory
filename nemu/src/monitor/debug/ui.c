@@ -36,6 +36,53 @@ static int cmd_q(char *args) {
 	return -1;
 }
 
+static int cmd_x(char *args) {
+	char *N =strtok(args," ");
+	char  *add=strtok(NULL," ");
+	swaddr_t  address;
+	int length;
+	sscanf(add,"%x",&address);
+	sscanf(N,"%d",&length);
+  swaddr_t addresss =address;
+	int t;
+	int cnt=0;
+	for(t=0;t<length;t++)
+	{
+		if(t%4==0)printf("0x%08x:",addresss+(0x10*cnt));
+      printf("0x%08x\t",swaddr_read(address,4));
+     if((t+1)%4==0){cnt++;printf("\n");}
+	  address+=4;
+	}
+	printf("\n");
+	return 0;
+}
+
+static int cmd_info(char *args) {
+	char xixi;
+	sscanf(args,"%s",&xixi);
+	if(xixi=='r')
+	{
+		printf("eax\t0x%08x\t%d\n",cpu.eax,cpu.eax);
+	printf("ebx\t0x%08x\t%d\n",cpu.ebx,cpu.ebx);
+	printf("ecx\t0x%8x\t%d\n",cpu.ecx,cpu.ecx);
+	printf("edx\t0x%08x\t%d\n",cpu.edx,cpu.edx);
+	printf("edi\t0x%08x\t%d\n",cpu.edi,cpu.edi);
+	printf("ebp\t0x%08x\t%d\n",cpu.ebp,cpu.ebp);
+	printf("esi\t0x%08x\t%d\n",cpu.esi,cpu.esi);
+	printf("esp\t0x%08x\t%d\n",cpu.esp,cpu.esp);
+	printf("eip\t0x%08x\t%d\n",cpu.eip,cpu.eip);
+	}
+	return 0;
+}
+
+static int cmd_si(char *args) {
+	if(args==NULL) {cpu_exec(1);return 0;}
+	int gg;
+   sscanf(args,"%d",&gg);
+	cpu_exec(gg);
+	return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -46,7 +93,9 @@ static struct {
 	{ "help", "Display informations about all supported commands", cmd_help },
 	{ "c", "Continue the execution of the program", cmd_c },
 	{ "q", "Exit NEMU", cmd_q },
-
+    {"si","execute given times", cmd_si},
+	{"info","print all registers",cmd_info},
+	{"x","scan memory",cmd_x},
 	/* TODO: Add more commands */
 
 };
