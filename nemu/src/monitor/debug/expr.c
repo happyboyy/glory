@@ -76,11 +76,6 @@ static bool make_token(char *e) {
 	
 	nr_token = 0;
 
-
-	for(i=0; i < 32; i++){
-		tokens[i].type = 777;
-		memset(tokens[i].str, 0, sizeof(tokens[i].str));
-
 	while(e[position] != '\0') {
 		/* Try all rules one by one. */
 		for(i = 0; i < NR_REGEX; i ++) {
@@ -88,52 +83,34 @@ static bool make_token(char *e) {
 				char *substr_start = e + position;
 				int substr_len = pmatch.rm_eo;
 
-				Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s", i, rules[i].regex, position, substr_len, substr_len, substr_start);
 				position += substr_len;
 
 				/* TODO: Now a new token is recognized with rules[i]. Add codes
-				 * to record the token in the array `tokens'. For certain types
-				 * of tokens, some extra actions should be performed.
+				 * to record the token in the array ``tokens''. For certain 
+				 * types of tokens, some extra actions should be performed.
 				 */
 
 				switch(rules[i].token_type) {
-					case NOTYPE:{ break;}
-					case Number: {
-						tokens[nr_token].type = Number;
-						strncpy(tokens[nr_token].str, substr_start, substr_len);
-						 nr_token++;
-						break;
-					}
-					case Hex: {
-						tokens[nr_token].type = Hex;
-						strncpy(tokens[nr_token].str, substr_start, substr_len);
-						 nr_token++;
-						break;
-					}{
-					case Reg: {
-						tokens[nr_token].type = Reg;
-						strncpy(tokens[nr_token].str, substr_start, substr_len);
-						 nr_token++;
-						break;
-					}
-					default:{tokens[nr_token].type = rules[i].token_type; nr_token++;break;}
+					case NOTYPE: break;
+					case Number:
+					//case ID:
+					case Reg: sprintf(tokens[nr_token].str, "%.*s", substr_len, substr_start);
+					default: tokens[nr_token].type = rules[i].token_type;
+							 nr_token ++;
 				}
+
 				break;
 			}
 		}
+
 		if(i == NR_REGEX) {
 			printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
 			return false;
 		}
 	}
-nr_token = nr_token;
+
 	return true; 
 }
-
-
-
-
-	}return 0;}
 	bool check_parentheses(int p ,int q)
 {
     int i,valid = 0;
