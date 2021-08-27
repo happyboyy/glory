@@ -8,7 +8,7 @@
 #include <regex.h>
 
 enum {
-	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR
+	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR,NEG
 
 	/* TODO: Add more token types */
 
@@ -158,40 +158,64 @@ int mo(int p,int q)
 return 0;
 }
 
-int recursion(int p,int q)
+uint32_t eval(int p,int q,bool *success)
 {
-	if(check_parentheses(p,q)==true){p++;q--;}
-	if(p==q)
+	if(*success == 0) return 0;
+	if(p > q)
 	{
-		if(tokens[p].type==Number||tokens[p].type==Hex)
-		return strtol(tokens[p].str,NULL,0);
+		*success = false;
+		return 0;
 	}
-   if(p<q)
-   {
-	  if(++p==q)
-     {
+	else if(p == q)
+	{
+		int a;
+		if(tokens[p].type ==Number)
+		{
+			sscanf(tokens[p].str,"%d",&a);
+			*success = true;
+			return a;
+		}
+		if(tokens[p].type == Hex)
+		{
+			sscanf(tokens[p].str,"%x",&a);
+			*success = true;
+			return a;
+		}
 
-     }
+	}
+	else if(check_parentheses(p,q) == true)
+	{
+		return eval(p +1,q - 1,success);
+	}
+	else
+	{
+		if((q - p) == 1)
+		{
+			if(tokens[p].type == NEQ)
+			     return !eval(p + 1,q,success);
+			if(tokens[p].type == NEG)
+			     return 0 - eval(p + 1,q,success);
+		}
+	}
 
-else
-{
-   int mainop =mo(p,q);
-   int type = tokens[mainop].type;
-int val1 =recursion(p,mainop-1);
-int val2 =recursion(mainop+1,q);
-switch(type)
-{
-	case '+':return val1+val2;
-	case '-':return val1-val2;
-	case '*':return val1*val2;
-	case '/':return val1/val2;
+	int op = mo(p,q);
+	int value1 = eval(p,op - 1,success);
+	int value2 = eval(op + 1,q,success);
+	int op_type = tokens[op].type;
+	
+	switch(op_type)
+	{
+		case '+':             return value1 + value2; break;
+		case '-':          return value1 - value2; break;
+		case '*':            return value1 * value2; break;
+		case '/':                 return value1 / value2; break;
+		case AND:               return value1 && value2; break;
+		case OR:                  return value1 || value2; break;
+		case EQ:                  return value1 == value2; break;
+		case NEQ:           return value1 != value2; break;
+		default:   assert(0);  return 0;
+	}
 }
-}
-
-   }
-   return 0;
-}
-
 
 uint32_t expr(char *e, bool *success) 
 {
@@ -203,7 +227,8 @@ uint32_t expr(char *e, bool *success)
 		
     printf("%d",nr_token);
 
+
 	/* TODO: Insert codes to evaluate the expression. */
 	//panic("please implement me");
-	return recursion(0,nr_token-1);
+	return eval(0,nr_token-1,success);
 }       
