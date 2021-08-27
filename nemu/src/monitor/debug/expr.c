@@ -97,34 +97,40 @@ static bool make_token(char *e) {
 				 */
 
 				switch(rules[i].token_type) {
-					case NOTYPE:{ break;}
+				case NOTYPE:{nr_token--; break;}
 					case Number: {
 						tokens[nr_token].type = Number;
 						strncpy(tokens[nr_token].str, substr_start, substr_len);
-						 nr_token++;
 						break;
 					}
 					case Hex: {
 						tokens[nr_token].type = Hex;
 						strncpy(tokens[nr_token].str, substr_start, substr_len);
-						 nr_token++;
 						break;
-					}{
+					}
 					case Reg: {
 						tokens[nr_token].type = Reg;
 						strncpy(tokens[nr_token].str, substr_start, substr_len);
-						 nr_token++;
 						break;
 					}
-					default:{tokens[nr_token].type = rules[i].token_type; nr_token++;break;}
-				}
+					case '!': {tokens[nr_token].type = (int)'!'; break;}
+					case '+': {tokens[nr_token].type = (int)'+'; break;}
+					case '-': {tokens[nr_token].type = (int)'-'; break;}
+					case '*': {tokens[nr_token].type = (int)'*'; break;}
+					case '/': {tokens[nr_token].type = (int)'/'; break;}
+					case '(': {tokens[nr_token].type = (int)'('; break;}
+					case ')': {tokens[nr_token].type = (int)')'; break;}
+					case EQ : {tokens[nr_token].type = EQ; break;}
+					case NEQ: {tokens[nr_token].type = NEQ; break;}
+					case AND: {tokens[nr_token].type = AND; break;}
+					case OR: {tokens[nr_token].type = OR; break;}
+					default: panic("please implement me");
 			}
 		}
 		if(i == NR_REGEX) {
 			printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
 			return false;
 		}
-		printf("%d",nr_token);
 	}
 nr_token = nr_token;
 	return true; 
