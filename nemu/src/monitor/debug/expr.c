@@ -265,5 +265,6 @@ tokens[i - 1].type == '+' || tokens[i - 1].type == '-' || tokens[i - 1].type == 
 	uint32_t result = 0;
 	result = eval(0,nr_token - 1,success);
 	//panic("please implement me");
+	printf("%d",nr_token);
 	return result;
 }
