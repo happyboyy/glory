@@ -257,7 +257,7 @@ uint32_t eval(int p, int q, bool *success){
 			}
 		}
 		int op = mo(p,q);
-		printf("5");
+		printf("%d",op);
 		int value1 = eval(p,op - 1,success);
 		int value2 = eval(op + 1,q,success);
 		int op_type = tokens[op].type;
