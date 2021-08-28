@@ -179,73 +179,63 @@ int Find_DominantOp(int p,int q){
 	return op;
 }
 
-uint32_t eval(int p, int q, bool *success){
+uint32_t eval(int p,int q,bool *success)
+{
 	if(*success == 0) return 0;
-	if(p > q){
+	if(p > q)
+	{
 		*success = false;
 		return 0;
 	}
-	else if(p == q){
-		int n;
-		if(tokens[p].type == DECIMAL){
-			sscanf(tokens[p].str,"%d",&n);
+	else if(p == q)
+	{
+		int a;
+		if(tokens[p].type == DECIMAL)
+		{
+			sscanf(tokens[p].str,"%d",&a);
 			*success = true;
-			return n;
+			return a;
 		}
-		if(tokens[p].type == HEX){
-			sscanf(tokens[p].str,"%x",&n);
+		if(tokens[p].type == HEX)
+		{
+			sscanf(tokens[p].str,"%x",&a);
 			*success = true;
-			return n;
+			return a;
 		}
-		if(tokens[p].type == REGISTER){
-			int i; *success = true;
-			const char* reg_32[8] = {"eax","ecx","edx","ebx","esp","ebp","esi","edi"};
-			const char* reg_16[8] = {"ax","cx","dx","bx","sp","bp","si","di"};
-			const char* reg_8[8] = {"al","ah","cl","ch","dl","dh","bl","bh"};
-			for(i = 0;i < 8;i++){
-			   if(strcmp(tokens[p].str,reg_32[i]) == 0){ n = cpu.gpr[i]._32; break;}
-			   if(strcmp(tokens[p].str,reg_16[i]) == 0){ n = cpu.gpr[i]._16; break;}
-			   if(strcmp(tokens[p].str,reg_8[i]) == 0){ n = cpu.gpr[i/2]._8[i%2]; break;}
-			}
-			if(strcmp(tokens[p].str,"eip") == 0)
-			n = cpu.eip;
-			return n;
-		}
-		else{
-			*success = false;
-			return 0;
+
+	}
+	else if(check_parentheses(p,q,success) == true)
+	{
+		return eval(p +1,q - 1,success);
+	}
+	else
+	{
+		if((q - p) == 1)
+		{
+			if(tokens[p].type == NOT)
+			     return !eval(p + 1,q,success);
+			if(tokens[p].type == NEG)
+			     return 0 - eval(p + 1,q,success);
 		}
 	}
-	else if(check_parentheses(p,q,success) == true){
-		return eval(p + 1,q - 1,success);
+
+	int op = Find_DominantOp(p,q);
+	int value1 = eval(p,op - 1,success);
+	int value2 = eval(op + 1,q,success);
+	int op_type = tokens[op].type;
+	
+	switch(op_type)
+	{
+		case PLUS:             return value1 + value2; break;
+		case SUBTRACT:          return value1 - value2; break;
+		case MULTIPLY:            return value1 * value2; break;
+		case DIVIDE:                 return value1 / value2; break;
+		case AND:               return value1 && value2; break;
+		case OR:                  return value1 || value2; break;
+		case EQ:                  return value1 == value2; break;
+		case UNEQ:           return value1 != value2; break;
+		default:   assert(0);  return 0;
 	}
-	else{
-		if((q - p) == 1){
-			if(tokens[p].type == NEG) return 0-eval(p + 1,q,success);
-			if(tokens[p].type == NOT) return !eval(p + 1,q,success);
-			if(tokens[p].type == P_Dereferenced) 
-				return swaddr_read(eval(p + 1,q,success),4);
-			else{
-				*success = false;
-				return 0;
-			}
-		}
-		int op = Find_DominantOp(p,q);
-		int value1 = eval(p,op - 1,success);
-		int value2 = eval(op + 1,q,success);
-		int op_type = tokens[op].type;
-		switch(op_type){
-			case PLUS : return value1 + value2; break;
-			case SUBTRACT : return value1 - value2; break;
-			case MULTIPLY: return value1*value2; break;
-			case DIVIDE: return value1/value2; break;
-			case AND : return value1 && value2; break;
-			case OR: return value1 || value2; break;
-			case UNEQ: return value1 != value2; break;
-			case EQ: return value1 == value2; break;
-			default: assert(0); return 0;
-		}
-	   }
 }
 		
 uint32_t expr(char *e, bool *success) {
