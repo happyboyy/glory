@@ -8,7 +8,7 @@
 #include <regex.h>
 
 enum {
-	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR,NEG,DEREF,DECIMAL
+	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR,NEG,DEREF,
 
 	/* TODO: Add more token types */
 
@@ -213,7 +213,7 @@ uint32_t eval(int p, int q, bool *success){
 	}
 	else if(p == q){
 		int n;
-		if(tokens[p].type == DECIMAL){
+		if(tokens[p].type == Number){
 			sscanf(tokens[p].str,"%d",&n);
 			*success = true;
 			return n;
