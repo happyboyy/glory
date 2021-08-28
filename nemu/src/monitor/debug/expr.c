@@ -177,119 +177,74 @@ int mo(int p, int q)
 }
 
 
-uint32_t eval(int l, int r, bool *success)
-{
-	if (*success == 0)
-		return -1;
-	if (l > r)
-	{
-		Assert(l > r, "表达式计算错误未知!\n");
-		return -1;
+uint32_t eval(int p, int q, bool *success){
+	if(*success == 0) return 0;
+	if(p > q){
+		*success = false;
+		return 0;
 	}
-	if (l == r)
-	{
-		uint32_t num = 0;
-		if (tokens[l].type == Number)
-			sscanf(tokens[l].str, "%d", &num);
-		else if (tokens[l].type == Hex)
-			sscanf(tokens[l].str, "%x", &num);
-		else if (tokens[l].type == Reg)
-		{
-			if (strlen(tokens[l].str) == 3)
-			{
-				int i;
-				for (i = R_EAX; i <= R_EDI; i++)
-					if (strcmp(tokens[l].str, regsl[i]) == 0)
-						break;
-				if (i > R_EDI)
-					if (strcmp(tokens[l].str, "eip") == 0)
-						num = cpu.eip;
-					else
-						Assert(1, "no this register!\n");
-				else
-					num = reg_l(i);
-			}
-			else if (strlen(tokens[l].str) == 2)
-			{
-				if (tokens[l].str[1] == 'x' || tokens[l].str[1] == 'p' || tokens[l].str[1] == 'i')
-				{
-					int i;
-					for (i = R_AX; i <= R_DI; i++)
-						if (strcmp(tokens[l].str, regsw[i]) == 0)
-							break;
-					num = reg_w(i);
-				}
-				else if (tokens[l].str[1] == 'l' || tokens[l].str[1] == 'h')
-				{
-					int i;
-					for (i = R_AL; i <= R_BH; i++)
-						if (strcmp(tokens[l].str, regsb[i]) == 0)
-							break;
-					num = reg_b(i);
-				}
-				else
-					assert(1);
-			}
+	else if(p == q){
+		int n;
+		if(tokens[p].type == DECIMAL){
+			sscanf(tokens[p].str,"%d",&n);
+			*success = true;
+			return n;
 		}
-
-		else
-		{
-			//printf("type = %d\n", token[l].type);
+		if(tokens[p].type == Hex){
+			sscanf(tokens[p].str,"%x",&n);
+			*success = true;
+			return n;
+		}
+		if(tokens[p].type == Reg){
+			int i; *success = true;
+			const char* reg_32[8] = {"eax","ecx","edx","ebx","esp","ebp","esi","edi"};
+			const char* reg_16[8] = {"ax","cx","dx","bx","sp","bp","si","di"};
+			const char* reg_8[8] = {"al","ah","cl","ch","dl","dh","bl","bh"};
+			for(i = 0;i < 8;i++){
+			   if(strcmp(tokens[p].str,reg_32[i]) == 0){ n = cpu.gpr[i]._32; break;}
+			   if(strcmp(tokens[p].str,reg_16[i]) == 0){ n = cpu.gpr[i]._16; break;}
+			   if(strcmp(tokens[p].str,reg_8[i]) == 0){ n = cpu.gpr[i/2]._8[i%2]; break;}
+			}
+			if(strcmp(tokens[p].str,"eip") == 0)
+			n = cpu.eip;
+			return n;
+		}
+		else{
 			*success = false;
-			return -1;
+			return 0;
 		}
-		return num;
 	}
-	else if (check_parentheses(l, r) == true)
-		return eval(l + 1, r - 1, success);
-	else
-	{
-		int op = mo(l, r);
-		if (l == op || tokens[op].type == DEREF || tokens[op].type == NEG || tokens[op].type == '!')
-		{
-			uint32_t val = eval(l + 1, r, success);
-			switch (tokens[l].type)
-			{
-			case DEREF:
-				return swaddr_read(val, 4);
-			case NEG:
-				return -val;
-			case '!':
-				return !val;
-			default:
-				//printf("不合法表达式\n"); //有些主运算符无法处于第一位
+	else if(check_parentheses(p,q) == true){
+		return eval(p + 1,q - 1,success);
+	}
+	else{
+		if((q - p) == 1){
+			if(tokens[p].type == NEG) return 0-eval(p + 1,q,success);
+			if(tokens[p].type ==  '1') return !eval(p + 1,q,success);
+			if(tokens[p].type == DEREF) 
+				return swaddr_read(eval(p + 1,q,success),4);
+			else{
 				*success = false;
-				return -1;
+				return 0;
 			}
 		}
-		uint32_t val1 = eval(l, op - 1, success);
-		uint32_t val2 = eval(op + 1, r, success);
-		switch (tokens[op].type)
-		{
-		case '+':
-			return val1 + val2;
-		case '-':
-			return val1 - val2;
-		case '*':
-			return val1 * val2;
-		case '/':
-			return val1 / val2;
-		case EQ:
-			return val1 == val2;
-		case NEQ:
-			return val1 != val2;
-		case AND:
-			return val1 && val2;
-		case OR:
-			return val1 || val2;
-		default:
-			//printf("不合法表达式\n"); //有些主运算符无法处于第一位
-			*success = false;
-			return -1;
+		int op = mo(p,q);
+		int value1 = eval(p,op - 1,success);
+		int value2 = eval(op + 1,q,success);
+		int op_type = tokens[op].type;
+		switch(op_type){
+			case '+' : return value1 + value2; break;
+			case '-': return value1 - value2; break;
+			case '*': return value1*value2; break;
+			case '/': return value1/value2; break;
+			case AND : return value1 && value2; break;
+			case OR: return value1 || value2; break;
+			case NEQ: return value1 != value2; break;
+			case EQ: return value1 == value2; break;
+			default: assert(0); return 0;
 		}
-	}
+	   }
 }
-
 
 uint32_t expr(char *e, bool *success) {
 	if(!make_token(e)) {
