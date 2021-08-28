@@ -201,6 +201,7 @@ int mo(int p, int q)
 			dom = i;
 		}
 	}
+	printf("%d",dom);
 	return dom;
 }
 
