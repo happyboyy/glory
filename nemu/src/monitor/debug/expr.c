@@ -246,18 +246,24 @@ uint32_t eval(int p, int q, bool *success){
 	   }
 }
 
-uint32_t expr(char *e, bool *success) 
-{
-	if(!make_token(e)) 
-		
-		{*success = false;
+uint32_t expr(char *e, bool *success) {
+	if(!make_token(e)) {
+		*success = false;
 		return 0;
-		}
-		
-    
+	}
 
 
-	/* TODO: Insert codes to evaluate the expression. */
+	int i;
+	for(i = 0;i < nr_token; i++){
+		if((tokens[i].type == '*' || tokens[i].type == '-') && (i == 0 || 
+tokens[i - 1].type == '+' || tokens[i - 1].type == '-' || tokens[i - 1].type == '*' ||
+ tokens[i - 1].type == '/' || tokens[i - 1].type == '(')){
+			if(tokens[i].type == '*') tokens[i].type = DEREF;
+			if(tokens[i].type == '-') tokens[i].type = NEG;
+	}
+	}
+	uint32_t result = 0;
+	result = eval(0,nr_token - 1,success);
 	//panic("please implement me");
-	return eval(0,nr_token-1,success);
-}       
+	return result;
+}
