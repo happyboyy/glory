@@ -201,9 +201,10 @@ int mo(int p, int q)
 			dom = i;
 		}
 	}
-
+printf("%d",dom);
 	return dom;
 }
+
 
 uint32_t eval(int p, int q, bool *success){
 	if(*success == 0) return 0;
