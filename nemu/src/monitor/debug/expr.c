@@ -77,27 +77,56 @@ static bool make_token(char *e) {
 	nr_token = 0;
 
 	while(e[position] != '\0') {
-		/* Try all rules one by one. */
+		
 		for(i = 0; i < NR_REGEX; i ++) {
 			if(regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
 				char *substr_start = e + position;
 				int substr_len = pmatch.rm_eo;
 
+				Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s", i, rules[i].regex, position, substr_len, substr_len, substr_start);
 				position += substr_len;
 
-				/* TODO: Now a new token is recognized with rules[i]. Add codes
-				 * to record the token in the array ``tokens''. For certain 
-				 * types of tokens, some extra actions should be performed.
-				 */
+				
 
 				switch(rules[i].token_type) {
-					case NOTYPE: break;
-					case Number:
-					//case ID:
-					case Reg: sprintf(tokens[nr_token].str, "%.*s", substr_len, substr_start);
-					default: tokens[nr_token].type = rules[i].token_type;
-							 nr_token ++;
+                                        case Number : tokens[nr_token].type=rules[i].token_type;
+                                        if(substr_len>=32) 
+                                          printf("NUM_10 too large");
+                                        else{
+                                             int j;
+                                             for (j = 0;j < 32;j ++)
+                                             tokens[nr_token].str[j] = '\0';
+                                             for (j =0;j <substr_len;j ++){
+                                                 tokens[nr_token].str[j] = substr_start[j];
+                                              }
+                                             }
+                                        break;
+                                        case Hex: tokens[nr_token].type = rules[i].token_type;
+                                        if (substr_len >=34)
+                                             printf("NUM_16 too largee");
+                                        else{
+                                             int j;
+                                             for( j = 0;j < 32;j ++)
+                                                tokens[nr_token].str[j] ='\0';
+                                             for( j = 0; j < substr_len -2;j ++){
+                                                tokens[nr_token].str[j] = substr_start[j + 2];
+                                               }
+                                            }
+                                        break;
+                                        case Reg:tokens[nr_token].type = rules[i].token_type;
+                                            int j;
+                                            for( j = 0;j < 32;j ++)
+                                            tokens[nr_token].str[j] = '\0';
+                                            for( j = 0; j < substr_len -1;j++)
+                                            tokens[nr_token].str[j] = substr_start[j + 1];
+                                            break;
+                                        case NOTYPE: nr_token--;break;
+
+                                             
+					default:tokens[nr_token].type = rules[i].token_type;
+                                     // panic("please implement me");
 				}
+                                nr_token++;
 
 				break;
 			}
@@ -110,7 +139,7 @@ static bool make_token(char *e) {
 	}
 
 	return true; 
-}
+}                                                            
 
 	bool check_parentheses(int p ,int q)
 {
@@ -140,28 +169,40 @@ int pri(int a)
 		return -1;
 }
 
-	int mo(int p,int q){
-	int op = -1;
-	int i;
-	int nr_p = 0;
-	int min_rank = 4;
-	for(i = q;i >= p;i--){
-	   if(tokens[i].type == ')') nr_p++;
-           if(tokens[i].type == '(') nr_p--;
-	   if(nr_p == 0 && (tokens[i].type == '*' || tokens[i].type == '/') && min_rank > 3){			op = i;
-		   min_rank = 3;  
-           }
-	   if(nr_p == 0 && (tokens[i].type == '+' || tokens[i].type == '-') && min_rank > 2){
-		   op = i;
-		   min_rank = 2;
-           }
-	   if(nr_p == 0 && (tokens[i].type == NEQ || tokens[i].type == EQ || tokens[i].type == AND
-|| tokens[i].type == OR) && min_rank > 1){
-		   op = i;
-		   min_rank = 1;
-	   }
+int mo(int p, int q)
+{
+
+	int i, dom = p, left_n = 0;
+	int pr = -1;
+	for (i = p; i <= q; i++)
+	{
+		if (tokens[i].type == '(')
+		{
+			left_n += 1;
+			i++;
+			while (1)
+			{
+				if (tokens[i].type == '(')
+					left_n += 1;
+				else if (tokens[i].type == ')')
+					left_n--;
+				i++;
+				if (left_n == 0)
+					break;
+			}
+			if (i > q)
+				break;
+		}
+		else if (tokens[i].type == Number)
+			continue;
+		else if (pri(tokens[i].type) > pr)
+		{
+			pr = pri(tokens[i].type);
+			dom = i;
+		}
 	}
-	return op;
+
+	return dom;
 }
 
 uint32_t eval(int p, int q, bool *success){
