@@ -112,17 +112,27 @@ static bool make_token(char *e) {
 	return true; 
 }
 
-	bool check_parentheses(int p ,int q)
-{
-    int i,valid = 0;
-    if(tokens[p].type != '(' || tokens[q].type != ')') return false; 
-    for(i = p ; i <= q ; i ++){    
-        if(tokens[i].type == '(') valid++;
-        else if(tokens[i].type == ')') valid--;
-        if(valid == 0 && i < q) return false ; 
-    }                              
-    if( valid != 0 ) return false;   
-    return true;                   
+	bool check_parentheses(int p, int q, bool *success){
+	bool result = false;
+	int judge[40] = {0,};
+	int i; int n = 0;
+	for(i = p ;i <= q ;i++){
+		if(tokens[i].type == '(' || tokens[i].type == ')'){
+			judge[n] = tokens[i].type;
+			if(n > 0 && (judge[n] == ')' && judge[n - 1] == '(')){
+				judge[n - 1] = 0; judge[n] = 0;
+				n = n - 2;
+			}
+			n++;;
+		}
+	}
+	if(judge[0] == 0){
+		*success = true;
+	}
+	else *success = false;
+	if(tokens[p].type == '(' && tokens[q].type == ')' && judge[0] == 0)
+	result = true;
+	return result;
 }
 
 int pri(int a)
@@ -202,7 +212,7 @@ uint32_t eval(int p, int q, bool *success){
 			return 0;
 		}
 	}
-	else if(check_parentheses(p,q) == true){
+	else if(check_parentheses(p,q,success) == true){
 		return eval(p + 1,q - 1,success);
 	}
 	else{
