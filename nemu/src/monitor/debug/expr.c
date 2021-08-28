@@ -8,7 +8,7 @@
 #include <regex.h>
 
 enum {
-	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR,NEG,DEREF,
+	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR,NEG,DEREF,REF
 
 	/* TODO: Add more token types */
 
@@ -154,54 +154,59 @@ static bool make_token(char *e) {
     return true;                   
 }
 
-int pri(int a)
-{
-	switch(a)
-	{
-		case '+' :return 5;
-		case '-'	:return 5;
-		case AND:return 12;
-		case OR:return 13;
-		case '*':return 4;
-		case '/':return 4;
-		case '!':return 2;
-		}
-		return -1;
+static int op_prec(int t) {
+	switch(t) {
+		case '!': case NEG: case REF: return 0;
+		case '*': case '/': case '%': return 1;
+		case '+': case '-': return 2;
+		case EQ: case NEQ: return 4;
+		case AND: return 8;
+		case OR: return 9;
+		default: assert(0);
+	}
 }
 
-int mo(int p, int q)
-{
 
-	int i, dom = p, left_n = 0;
-	int pr = -1;
-	for (i = p; i <= q; i++)
-	{
-		if (tokens[i].type == '(')
-		{
-			left_n += 1;
-			i++;
-			while (1)
-			{
-				if (tokens[i].type == '(')
-					left_n += 1;
-				else if (tokens[i].type == ')')
-					left_n--;
-				i++;
-				if (left_n == 0)
-					break;
-			}
-			if (i > q)
+static inline int op_prec_cmp(int t1, int t2) {
+	return op_prec(t1) - op_prec(t2);
+}
+
+static int find_dominated_op(int s, int e, bool *success) {
+	int i;
+	int bracket_level = 0;
+	int dominated_op = -1;
+	for(i = s; i <= e; i ++) {
+		switch(tokens[i].type) {
+			case Reg: case Number:  break;
+
+			case '(': 
+				bracket_level ++; 
+				break;
+
+			case ')': 
+				bracket_level --; 
+				if(bracket_level < 0) {
+					*success = false;
+					return 0;
+				}
+				break;
+
+			default:
+				if(bracket_level == 0) {
+					if(dominated_op == -1 || 
+							op_prec_cmp(tokens[dominated_op].type, tokens[i].type) < 0 ||
+							(op_prec_cmp(tokens[dominated_op].type, tokens[i].type) == 0 && 
+							 tokens[i].type != '!' && tokens[i].type != '~' &&
+							 tokens[i].type != NEG && tokens[i].type != REF) ) {
+						dominated_op = i;
+					}
+				}
 				break;
 		}
-		else if (tokens[i].type == Number)
-			continue;
-		else if (pri(tokens[i].type) > pr)
-		{
-			pr = pri(tokens[i].type);
-			dom = i;
-		}
 	}
-	return dom;
+
+	*success = (dominated_op != -1);
+	return dominated_op;
 }
 
 
@@ -256,8 +261,8 @@ uint32_t eval(int p, int q, bool *success){
 				return 0;
 			}
 		}
-		int op = mo(p,q);
-		printf("%d",op);
+		int op = find_dominated_op(p,q,success);
+	
 		int value1 = eval(p,op - 1,success);
 		int value2 = eval(op + 1,q,success);
 		int op_type = tokens[op].type;
