@@ -140,40 +140,28 @@ int pri(int a)
 		return -1;
 }
 
-int mo(int p, int q)
-{
-
-	int i, dom = p, left_n = 0;
-	int pr = -1;
-	for (i = p; i <= q; i++)
-	{
-		if (tokens[i].type == '(')
-		{
-			left_n += 1;
-			i++;
-			while (1)
-			{
-				if (tokens[i].type == '(')
-					left_n += 1;
-				else if (tokens[i].type == ')')
-					left_n--;
-				i++;
-				if (left_n == 0)
-					break;
-			}
-			if (i > q)
-				break;
-		}
-		else if (tokens[i].type == Number)
-			continue;
-		else if (pri(tokens[i].type) > pr)
-		{
-			pr = pri(tokens[i].type);
-			dom = i;
-		}
+int mo(int p,int q){
+	int op = -1;
+	int i;
+	int nr_p = 0;
+	int min_rank = 4;
+	for(i = q;i >= p;i--){
+	   if(tokens[i].type == ')') nr_p++;
+           if(tokens[i].type == '(') nr_p--;
+	   if(nr_p == 0 && (tokens[i].type == '*' || tokens[i].type == '/') && min_rank > 3){			op = i;
+		   min_rank = 3;  
+           }
+	   if(nr_p == 0 && (tokens[i].type == '+' || tokens[i].type == '-') && min_rank > 2){
+		   op = i;
+		   min_rank = 2;
+           }
+	   if(nr_p == 0 && (tokens[i].type == NEQ || tokens[i].type == EQ || tokens[i].type == AND
+|| tokens[i].type == OR) && min_rank > 1){
+		   op = i;
+		   min_rank = 1;
+	   }
 	}
-
-	return dom;
+	return op;
 }
 
 
@@ -265,6 +253,5 @@ tokens[i - 1].type == '+' || tokens[i - 1].type == '-' || tokens[i - 1].type == 
 	uint32_t result = 0;
 	result = eval(0,nr_token - 1,success);
 	//panic("please implement me");
-	printf("%d",nr_token);
 	return result;
 }
