@@ -8,7 +8,7 @@
 #include <regex.h>
 
 enum {
-	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR,NEG,DEREF,REF
+	NOTYPE = 256, EQ,Number,Hex,Reg,NEQ,AND,OR,NEG,DEREF
 
 	/* TODO: Add more token types */
 
@@ -45,7 +45,7 @@ static struct rule {
 static regex_t re[NR_REGEX];
 
 /* Rules are used for many times.
- * Therefore we compile them onAND once before any usage.
+ * TheDEREFore we compile them onAND once before any usage.
  */
 void init_regex() {
 	int i;
@@ -156,7 +156,7 @@ static bool make_token(char *e) {
 
 static int op_prec(int t) {
 	switch(t) {
-		case '!': case NEG: case REF: return 0;
+		case '!': case NEG: case DEREF: return 0;
 		case '*': case '/': case '%': return 1;
 		case '+': case '-': return 2;
 		case EQ: case NEQ: return 4;
@@ -197,7 +197,7 @@ static int find_dominated_op(int s, int e, bool *success) {
 							op_prec_cmp(tokens[dominated_op].type, tokens[i].type) < 0 ||
 							(op_prec_cmp(tokens[dominated_op].type, tokens[i].type) == 0 && 
 							 tokens[i].type != '!' && tokens[i].type != '~' &&
-							 tokens[i].type != NEG && tokens[i].type != REF) ) {
+							 tokens[i].type != NEG && tokens[i].type != DEREF) ) {
 						dominated_op = i;
 					}
 				}
@@ -251,21 +251,34 @@ uint32_t eval(int p, int q, bool *success){
 		return eval(p + 1,q - 1,success);
 	}
 	else{
-		if((q - p) == 1){
+		
+		/*if((q - p) == 1){
 			if(tokens[p].type == NEG) return 0-eval(p + 1,q,success);
-			if(tokens[p].type == NEQ) return !eval(p + 1,q,success);
+			if(tokens[p].type == '!') return !eval(p + 1,q,success);
 			if(tokens[p].type == DEREF) 
 				return swaddr_read(eval(p + 1,q,success),4);
 			else{
 				*success = false;
 				return 0;
 			}
-		}
+		}*/
 		int op = find_dominated_op(p,q,success);
+		int op_type = tokens[op].type;
+		if(op_type == '!' || op_type == NEG || op_type == DEREF) {
+			uint32_t val = eval(op + 1, q, success);
+			if(!*success) { return 0; }
+
+		switch(op_type){
+			case '!': return !val;
+				case NEG: return -val;
+				case DEREF: return swaddr_read(val, 4);
+			default: assert(0); return 0;
+		}
+		}
 	
 		int value1 = eval(p,op - 1,success);
 		int value2 = eval(op + 1,q,success);
-		int op_type = tokens[op].type;
+		
 		switch(op_type){
 			case '+' : return value1 + value2; break;
 			case '-' : return value1 - value2; break;
