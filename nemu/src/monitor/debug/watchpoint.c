@@ -20,7 +20,7 @@ void init_wp_pool() {
 
 WP * new_wp(char *exp)
 {
-	assert(free_!=NULL);
+	//assert(free_!=NULL);
 	WP *p=free_;
 	p->next=NULL;
 	free_=free_->next;
