@@ -13,5 +13,7 @@ typedef struct watchpoint {
 
 
 } WP;
-
+WP * new_wp(char *exp);
+void free_wp(WP* wp);
+int test_change();
 #endif

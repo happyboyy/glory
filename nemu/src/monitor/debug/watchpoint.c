@@ -67,6 +67,25 @@ void free_wp(WP* wp)
 	}
 }
 
+int test_change()
+{
+	WP *p=head;
+	int count=0;
+	while(p)
+	{
+		count++;
+		p=p->next;
+	}
+	int i;
+	bool success;
+	WP *q=head;
+	for(i=0;i<count;i++)
+	{
+		if(q->value!=expr(q->exp,&success))
+		return 1;
+	}
+	return 0;
+}
 /* TODO: Implement the functionality of watchpoint */
 
 
