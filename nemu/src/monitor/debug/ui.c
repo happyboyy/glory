@@ -100,7 +100,7 @@ static int cmd_p(char *args)
 static int cmd_w(char *args)
 {
   WP *wp=new_wp(args);
-  printf("%d%s%d\n",wp->NO,wp->exp,wp->value);
+  printf("%d\t%s\t%d\n",wp->NO,wp->exp,wp->value);
   return 0;
 }
 
