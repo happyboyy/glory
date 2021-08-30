@@ -76,8 +76,7 @@ void cpu_exec(volatile uint32_t n) {
 		/* TODO: check watchpoints here. */
 int change=test_change();
 if(change)
-{printf("Hint watchpoint 0 at address 0x00100014");
-nemu_state=STOP;}
+nemu_state=STOP;
 
 #ifdef HAS_DEVICE
 		extern void device_update();

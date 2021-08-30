@@ -105,9 +105,12 @@ int test_change()
 	for(i=0;i<count;i++)
 	{
 		if(q->value!=expr(q->exp,&success))
+		{printf("Hint watchpoint%d at address 0x%08x\n",q->NO,q->value);
 		return 1;
 	}
+	}
 	return 0;
+	
 }
 /* TODO: Implement the functionality of watchpoint */
 
