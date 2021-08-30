@@ -67,6 +67,29 @@ void free_wp(WP* wp)
 	}
 }
 
+void delete_wp(int no)
+{
+	WP *p=head;
+	while(p)
+	{
+		if(p->NO==no)
+		free_wp(p);
+	}
+}
+
+void print_wp()
+{
+	WP *p=head;
+	while(p)
+	{
+		printf("%d\t",p->NO);
+		printf("%s\t",p->exp);
+		printf("%d\t",p->value);
+		printf("\n");
+		p=p->next;
+	}
+}
+
 int test_change()
 {
 	WP *p=head;

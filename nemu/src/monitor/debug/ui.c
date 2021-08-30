@@ -3,6 +3,7 @@
 #include "monitor/watchpoint.h"
 #include "nemu.h"
 
+
 #include <stdlib.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -72,6 +73,10 @@ static int cmd_info(char *args) {
 	printf("esp\t0x%08x\t%d\n",cpu.esp,cpu.esp);
 	printf("eip\t0x%08x\t%d\n",cpu.eip,cpu.eip);
 	}
+	if(xixi=='w')
+	{
+       print_wp();
+	}
 	return 0;
 }
 
@@ -92,6 +97,21 @@ static int cmd_p(char *args)
 	return 0;
 }
 
+static int cmd_w(char *args)
+{
+  WP *wp=new_wp(args);
+  printf("%d%s%d\n",wp->NO,wp->exp,wp->value);
+  return 0;
+}
+
+static int cmd_d(char *args)
+{
+	int n=0;
+  sscanf(args,"%d",&n);
+  delete_wp(n);
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -106,6 +126,8 @@ static struct {
 	{"info","print all registers",cmd_info},
 	{"x","scan memory",cmd_x},
 	{"p","calculate",cmd_p},
+	{"w","set up monitor points",cmd_w},
+	{"d","delete monitor points",cmd_d},
 	/* TODO: Add more commands */
 
 };
