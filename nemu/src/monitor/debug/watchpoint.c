@@ -25,9 +25,9 @@ WP * new_wp(char *exp)
 	p->next=NULL;
 	free_=free_->next;
 	strcpy(p->exp,exp);
-	bool  success=success;
+	bool  success=true;
 	p->value=expr(p->exp,&success);
-
+	assert(success);
 	if(head==NULL)
 	{
 		head=p;
