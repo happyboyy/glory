@@ -39,7 +39,6 @@ WP * new_wp(char *exp)
 		{
 			tail=tail->next;
 		}
-		p->next=tail->next;
 		tail->next=p;
 	}
 	return p;
